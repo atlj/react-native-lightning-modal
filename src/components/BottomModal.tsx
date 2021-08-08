@@ -1,9 +1,4 @@
-import React, {
-  PropsWithChildren,
-  useCallback,
-  useImperativeHandle,
-  useState,
-} from 'react';
+import React, { PropsWithChildren, useImperativeHandle } from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import {
   PanGestureHandler,
@@ -11,9 +6,10 @@ import {
 } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
-  runOnJS,
+  interpolate,
   useAnimatedGestureHandler,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
@@ -73,17 +69,30 @@ const BottomModal = React.forwardRef<
   PropsWithChildren<BottomModalProps>
 >(({ height, backdropColor, style, easing, children, duration }, ref) => {
   const top = useSharedValue(screen.height);
-  const [isActive, setIsActive] = useState<boolean>(false);
+  const updateTop = (value: number) => {
+    'worklet';
+    return withTiming(value, {
+      easing,
+      duration,
+    });
+  };
+
+  const isActive = useDerivedValue<boolean>(() => {
+    if (top.value > screen.height - 10) {
+      return false;
+    } else {
+      return true;
+    }
+  }, [top]);
 
   useImperativeHandle(ref, () => ({
     show: () => {
-      top.value = screen.height - height;
-      setIsActive(true);
+      top.value = updateTop(screen.height - height);
     },
     dismiss: () => {
-      top.value = screen.height;
+      top.value = updateTop(screen.height);
     },
-    isActive,
+    isActive: isActive.value,
   }));
 
   const gestureHandler = useAnimatedGestureHandler<
@@ -94,55 +103,51 @@ const BottomModal = React.forwardRef<
       context.startHeight = top.value;
     },
     onActive: (event, context) => {
-      top.value = context.startHeight + event.translationY;
+      if (
+        context.startHeight + event.translationY >
+        screen.height - height - 50
+      ) {
+        top.value = context.startHeight + event.translationY;
+      }
     },
     onEnd: () => {
       if (top.value > screen.height - height / 2) {
-        top.value = screen.height;
+        top.value = updateTop(screen.height);
       } else {
-        top.value = screen.height - height;
+        top.value = updateTop(screen.height - height);
       }
     },
   });
 
-  const updateIsActive = useCallback(() => {
-    if (top.value > screen.height - 10) {
-      setIsActive(false);
-    }
-  }, [top.value]);
-
   const containerAnimatedStyle = useAnimatedStyle(() => ({
-    top: withTiming(
-      top.value,
-      {
-        easing,
-        duration,
-      },
-      runOnJS(updateIsActive)
-    ),
+    top: top.value,
   }));
 
   const backdropAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(
-      (screen.height - top.value) / (screen.height - height),
-      {
-        easing,
-        duration,
-      }
+    // opacity: withTiming(
+    //   (screen.height - top.value) / (screen.height - height),
+    //   {
+    //     easing,
+    //     duration,
+    //   }
+    // ),
+    opacity: interpolate(
+      top.value,
+      [screen.height - height, screen.height],
+      [1, 0]
     ),
+    top: isActive.value ? 0 : screen.height,
   }));
 
   return (
     <View style={styles.fullScreen}>
-      {isActive && (
-        <Animated.View
-          style={[
-            styles.backdrop,
-            { backgroundColor: backdropColor },
-            backdropAnimatedStyle,
-          ]}
-        />
-      )}
+      <Animated.View
+        style={[
+          styles.backdrop,
+          { backgroundColor: backdropColor },
+          backdropAnimatedStyle,
+        ]}
+      />
       <PanGestureHandler onGestureEvent={gestureHandler}>
         <Animated.View
           style={[styles.container, style, containerAnimatedStyle]}
