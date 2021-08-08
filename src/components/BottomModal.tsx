@@ -15,7 +15,8 @@ export type BottomModalProps = {
   height: number;
 
   /**
-   *
+   * Basically the color of a fullscreen view displayed below modal
+   * @example rgba(255,255,255,0.8)
    */
   backdropColor?: string;
 
