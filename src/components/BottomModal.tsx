@@ -1,7 +1,12 @@
 import React, { PropsWithChildren, useImperativeHandle } from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
+import {
+  PanGestureHandler,
+  PanGestureHandlerGestureEvent,
+} from 'react-native-gesture-handler';
 import Animated, {
   Easing,
+  useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -26,14 +31,16 @@ export type BottomModalProps = {
   style?: ViewStyle;
 
   /**
-   * Easing function which modal will be presented
-   * @default Easing.cubic
+   * Easing function which modal will be presented.
+   * Since this also affects the time between user pressing the button and seeing the effect, a faster kind of curve function is recommended.
+   * @default Easing.quad
    */
   easing?: Animated.EasingFunction;
 
   /**
-   * Modal animation's duration in milliseconds
-   * @default 350
+   * Modal animation's duration in milliseconds.
+   * Since this also affects the time between user pressing the button and seeing the effect, a smaler number is recommended.
+   * @default 300
    */
   duration?: number;
 };
@@ -65,6 +72,25 @@ const BottomModal = React.forwardRef<
     },
   }));
 
+  const gestureHandler = useAnimatedGestureHandler<
+    PanGestureHandlerGestureEvent,
+    { startHeight: number }
+  >({
+    onStart: (_, context) => {
+      context.startHeight = top.value;
+    },
+    onActive: (event, context) => {
+      top.value = context.startHeight + event.translationY;
+    },
+    onEnd: () => {
+      if (top.value > screen.height - height / 2) {
+        top.value = screen.height;
+      } else {
+        top.value = screen.height - height;
+      }
+    },
+  });
+
   const containerAnimatedStyle = useAnimatedStyle(() => ({
     top: withTiming(top.value, {
       easing,
@@ -74,14 +100,18 @@ const BottomModal = React.forwardRef<
 
   return (
     <View style={[styles.fullScreen, { backgroundColor: backdropColor }]}>
-      <Animated.View style={[styles.container, style, containerAnimatedStyle]}>
-        {children}
-      </Animated.View>
+      <PanGestureHandler onGestureEvent={gestureHandler}>
+        <Animated.View
+          style={[styles.container, style, containerAnimatedStyle]}
+        >
+          {children}
+        </Animated.View>
+      </PanGestureHandler>
     </View>
   );
 });
 
-BottomModal.defaultProps = { duration: 350, easing: Easing.cubic };
+BottomModal.defaultProps = { duration: 300, easing: Easing.quad };
 
 const styles = StyleSheet.create({
   fullScreen: {
@@ -98,9 +128,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'white',
-    borderTopWidth: 2,
-
-    borderTopColor: 'black',
   },
 });
 
