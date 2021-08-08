@@ -1,2 +1,2 @@
 export { useBottomModal } from './utils/hooks';
-export { BottomModal } from './components';
+export { BottomModal, BottomModalProps, BottomModalRef } from './components';
