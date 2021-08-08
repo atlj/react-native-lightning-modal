@@ -1,5 +1,2 @@
-export default {
-  multiply(a: number, b: number) {
-    return Promise.resolve(a * b);
-  },
-};
+export { useBottomModal } from './utils/hooks';
+export { BottomModal } from './components';
