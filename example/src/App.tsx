@@ -1,18 +1,20 @@
 import * as React from 'react';
 
-import { StyleSheet, View, Text } from 'react-native';
-import LightningModal from 'react-native-lightning-modal';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { useBottomModal, BottomModal } from 'react-native-lightning-modal';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
-
-  React.useEffect(() => {
-    LightningModal.multiply(3, 7).then(setResult);
-  }, []);
-
+  const { dismiss, show, modalProps } = useBottomModal();
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
+      <TouchableOpacity onPress={show}>
+        <Text>show</Text>
+      </TouchableOpacity>
+      <BottomModal height={500} {...modalProps}>
+        <TouchableOpacity onPress={dismiss}>
+          <Text>dismiss</Text>
+        </TouchableOpacity>
+      </BottomModal>
     </View>
   );
 }
@@ -22,10 +24,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  box: {
-    width: 60,
-    height: 60,
-    marginVertical: 20,
   },
 });
