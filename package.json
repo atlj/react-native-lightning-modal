@@ -34,7 +34,17 @@
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "reanimated",
+    "bottom modal",
+    "react native modal",
+    "react native bottom modal",
+    "react native fast modal",
+    "react native performant modal",
+    "react-native-reanimated-2",
+    "react native reanimated modal",
+    "react native reanimated bottom modal",
+    "react native gesture handler modal"
   ],
   "repository": "https://github.com/atlj/react-native-lightning-modal",
   "author": "atlj <md.burak.guner@gmail.com> (https://github.com/atlj)",
