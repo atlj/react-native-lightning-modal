@@ -10,7 +10,7 @@ export default function App() {
       <TouchableOpacity onPress={show}>
         <Text>show</Text>
       </TouchableOpacity>
-      <BottomModal height={500} {...modalProps}>
+      <BottomModal backdropColor="rgba(0,0,0,0.5)" height={500} {...modalProps}>
         <TouchableOpacity onPress={dismiss}>
           <Text>dismiss</Text>
         </TouchableOpacity>

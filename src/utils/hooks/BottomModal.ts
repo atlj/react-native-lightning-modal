@@ -28,6 +28,11 @@ const useBottomModal = () => {
      * Hides modal
      */
     dismiss,
+
+    /**
+     * true if modal is visible
+     */
+    isActive: ref.current?.isActive,
   };
 };
 

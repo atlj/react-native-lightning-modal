@@ -1,4 +1,9 @@
-import React, { PropsWithChildren, useImperativeHandle } from 'react';
+import React, {
+  PropsWithChildren,
+  useCallback,
+  useImperativeHandle,
+  useState,
+} from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import {
   PanGestureHandler,
@@ -6,6 +11,7 @@ import {
 } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
+  runOnJS,
   useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
@@ -55,6 +61,11 @@ export type BottomModalRef = {
    * Hides modal
    */
   dismiss: () => void;
+
+  /**
+   * true if modal is visible
+   */
+  isActive: boolean;
 };
 
 const BottomModal = React.forwardRef<
@@ -62,14 +73,17 @@ const BottomModal = React.forwardRef<
   PropsWithChildren<BottomModalProps>
 >(({ height, backdropColor, style, easing, children, duration }, ref) => {
   const top = useSharedValue(screen.height);
+  const [isActive, setIsActive] = useState<boolean>(false);
 
   useImperativeHandle(ref, () => ({
     show: () => {
       top.value = screen.height - height;
+      setIsActive(true);
     },
     dismiss: () => {
       top.value = screen.height;
     },
+    isActive,
   }));
 
   const gestureHandler = useAnimatedGestureHandler<
@@ -91,15 +105,44 @@ const BottomModal = React.forwardRef<
     },
   });
 
+  const updateIsActive = useCallback(() => {
+    if (top.value > screen.height - 10) {
+      setIsActive(false);
+    }
+  }, [top.value]);
+
   const containerAnimatedStyle = useAnimatedStyle(() => ({
-    top: withTiming(top.value, {
-      easing,
-      duration,
-    }),
+    top: withTiming(
+      top.value,
+      {
+        easing,
+        duration,
+      },
+      runOnJS(updateIsActive)
+    ),
+  }));
+
+  const backdropAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(
+      (screen.height - top.value) / (screen.height - height),
+      {
+        easing,
+        duration,
+      }
+    ),
   }));
 
   return (
-    <View style={[styles.fullScreen, { backgroundColor: backdropColor }]}>
+    <View style={styles.fullScreen}>
+      {isActive && (
+        <Animated.View
+          style={[
+            styles.backdrop,
+            { backgroundColor: backdropColor },
+            backdropAnimatedStyle,
+          ]}
+        />
+      )}
       <PanGestureHandler onGestureEvent={gestureHandler}>
         <Animated.View
           style={[styles.container, style, containerAnimatedStyle]}
@@ -115,11 +158,15 @@ BottomModal.defaultProps = { duration: 300, easing: Easing.quad };
 
 const styles = StyleSheet.create({
   fullScreen: {
-    position: 'absolute',
-    width: screen.width,
     height: screen.height,
+    position: 'absolute',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  backdrop: {
+    position: 'absolute',
+    height: screen.height,
+    width: screen.width,
   },
   container: {
     width: screen.width,
