@@ -1,6 +1,6 @@
 {
   "name": "react-native-lightning-modal",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "a fast modal made with react native reanimated 2!",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
