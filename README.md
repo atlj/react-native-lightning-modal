@@ -1,7 +1,6 @@
 # react-native-lightning-modal
 
-![ezgif-2-f1e49a739730](https://user-images.githubusercontent.com/23079646/128644357-fc82ba9f-fa32-44eb-92cd-36b3486c9acb.gif)
-
+![2021-08-09 17-32-38](https://user-images.githubusercontent.com/23079646/128723844-c7317cf3-6d28-4d60-a6ac-5c1c108a4a50.gif)
 
 A fast bottom modal that works with React Native Reanimated 2!
 
