@@ -113,10 +113,7 @@ const BottomModal = React.forwardRef<
     },
     onActive: (event, context) => {
       //Prevent modal to go up more than it should
-      if (
-        context.startHeight + event.translationY >
-        screen.height - height - 50
-      ) {
+      if (context.startHeight + event.translationY > screen.height - height) {
         top.value = context.startHeight + event.translationY;
       }
     },
@@ -156,7 +153,7 @@ const BottomModal = React.forwardRef<
       />
       <PanGestureHandler onGestureEvent={gestureHandler}>
         <Animated.View
-          style={[styles.container, style, containerAnimatedStyle]}
+          style={[styles.container, { height }, style, containerAnimatedStyle]}
         >
           {children}
         </Animated.View>
@@ -181,7 +178,6 @@ const styles = StyleSheet.create({
   },
   container: {
     width: screen.width,
-    height: '100%',
     position: 'absolute',
     justifyContent: 'center',
     alignItems: 'center',
