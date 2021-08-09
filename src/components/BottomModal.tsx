@@ -1,4 +1,8 @@
-import React, { PropsWithChildren, useImperativeHandle } from 'react';
+import React, {
+  PropsWithChildren,
+  useCallback,
+  useImperativeHandle,
+} from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import {
   PanGestureHandler,
@@ -69,13 +73,18 @@ const BottomModal = React.forwardRef<
   PropsWithChildren<BottomModalProps>
 >(({ height, backdropColor, style, easing, children, duration }, ref) => {
   const top = useSharedValue(screen.height);
-  const updateTop = (value: number) => {
-    'worklet';
-    return withTiming(value, {
-      easing,
-      duration,
-    });
-  };
+
+  //Animates top value
+  const updateTop = useCallback(
+    (value: number) => {
+      'worklet';
+      return withTiming(value, {
+        easing,
+        duration,
+      });
+    },
+    [easing, duration]
+  );
 
   const isActive = useDerivedValue<boolean>(() => {
     if (top.value > screen.height - 10) {
@@ -103,6 +112,7 @@ const BottomModal = React.forwardRef<
       context.startHeight = top.value;
     },
     onActive: (event, context) => {
+      //Prevent modal to go up more than it should
       if (
         context.startHeight + event.translationY >
         screen.height - height - 50
@@ -111,6 +121,7 @@ const BottomModal = React.forwardRef<
       }
     },
     onEnd: () => {
+      //Determine if modal should close or go back to its original height
       if (top.value > screen.height - height / 2) {
         top.value = updateTop(screen.height);
       } else {
@@ -124,18 +135,13 @@ const BottomModal = React.forwardRef<
   }));
 
   const backdropAnimatedStyle = useAnimatedStyle(() => ({
-    // opacity: withTiming(
-    //   (screen.height - top.value) / (screen.height - height),
-    //   {
-    //     easing,
-    //     duration,
-    //   }
-    // ),
+    //Less opaque if top value is larger, vice verca
     opacity: interpolate(
       top.value,
       [screen.height - height, screen.height],
       [1, 0]
     ),
+    //don't show backdrop component if modal is not present, as it cancels any touch events
     top: isActive.value ? 0 : screen.height,
   }));
 
