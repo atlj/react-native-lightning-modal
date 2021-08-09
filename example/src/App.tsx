@@ -14,7 +14,11 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <StatusBar translucent backgroundColor="transparent" />
+      <StatusBar
+        translucent
+        barStyle="dark-content"
+        backgroundColor="transparent"
+      />
       <Text style={[styles.headingText, styles.header]}>Hi.👋</Text>
       <TouchableOpacity style={styles.button} onPress={show}>
         <Text style={styles.buttonText}>Show a lightning modal! ⚡</Text>
