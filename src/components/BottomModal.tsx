@@ -26,7 +26,8 @@ export type BottomModalProps = {
   height: number;
 
   /**
-   * Basically the color of a fullscreen view displayed below modal
+   * Basically the color of a fullscreen view displayed below modal.
+   * You can also change this by using backdropStyle prop.
    * @example rgba(255,255,255,0.8)
    */
   backdropColor?: string;
@@ -49,6 +50,11 @@ export type BottomModalProps = {
    * @default 300
    */
   duration?: number;
+
+  /**
+   * Style of backdrop component
+   */
+  backdropStyle?: ViewStyle;
 };
 
 export type BottomModalRef = {
@@ -71,96 +77,107 @@ export type BottomModalRef = {
 const BottomModal = React.forwardRef<
   BottomModalRef,
   PropsWithChildren<BottomModalProps>
->(({ height, backdropColor, style, easing, children, duration }, ref) => {
-  const top = useSharedValue(screen.height);
+>(
+  (
+    { height, backdropColor, style, easing, children, duration, backdropStyle },
+    ref
+  ) => {
+    const top = useSharedValue(screen.height);
 
-  //Animates top value
-  const updateTop = useCallback(
-    (value: number) => {
-      'worklet';
-      return withTiming(value, {
-        easing,
-        duration,
-      });
-    },
-    [easing, duration]
-  );
+    //Animates top value
+    const updateTop = useCallback(
+      (value: number) => {
+        'worklet';
+        return withTiming(value, {
+          easing,
+          duration,
+        });
+      },
+      [easing, duration]
+    );
 
-  const isActive = useDerivedValue<boolean>(() => {
-    if (top.value > screen.height - 10) {
-      return false;
-    } else {
-      return true;
-    }
-  }, [top]);
-
-  useImperativeHandle(ref, () => ({
-    show: () => {
-      top.value = updateTop(screen.height - height);
-    },
-    dismiss: () => {
-      top.value = updateTop(screen.height);
-    },
-    isActive: isActive.value,
-  }));
-
-  const gestureHandler = useAnimatedGestureHandler<
-    PanGestureHandlerGestureEvent,
-    { startHeight: number }
-  >({
-    onStart: (_, context) => {
-      context.startHeight = top.value;
-    },
-    onActive: (event, context) => {
-      //Prevent modal to go up more than it should
-      if (context.startHeight + event.translationY > screen.height - height) {
-        top.value = context.startHeight + event.translationY;
-      }
-    },
-    onEnd: () => {
-      //Determine if modal should close or go back to its original height
-      if (top.value > screen.height - height / 2) {
-        top.value = updateTop(screen.height);
+    const isActive = useDerivedValue<boolean>(() => {
+      if (top.value > screen.height - 10) {
+        return false;
       } else {
-        top.value = updateTop(screen.height - height);
+        return true;
       }
-    },
-  });
+    }, [top]);
 
-  const containerAnimatedStyle = useAnimatedStyle(() => ({
-    top: top.value,
-  }));
+    useImperativeHandle(ref, () => ({
+      show: () => {
+        top.value = updateTop(screen.height - height);
+      },
+      dismiss: () => {
+        top.value = updateTop(screen.height);
+      },
+      isActive: isActive.value,
+    }));
 
-  const backdropAnimatedStyle = useAnimatedStyle(() => ({
-    //Less opaque if top value is larger, vice verca
-    opacity: interpolate(
-      top.value,
-      [screen.height - height, screen.height],
-      [1, 0]
-    ),
-    //don't show backdrop component if modal is not present, as it cancels any touch events
-    top: isActive.value ? 0 : screen.height,
-  }));
+    const gestureHandler = useAnimatedGestureHandler<
+      PanGestureHandlerGestureEvent,
+      { startHeight: number }
+    >({
+      onStart: (_, context) => {
+        context.startHeight = top.value;
+      },
+      onActive: (event, context) => {
+        //Prevent modal to go up more than it should
+        if (context.startHeight + event.translationY > screen.height - height) {
+          top.value = context.startHeight + event.translationY;
+        }
+      },
+      onEnd: () => {
+        //Determine if modal should close or go back to its original height
+        if (top.value > screen.height - height / 2) {
+          top.value = updateTop(screen.height);
+        } else {
+          top.value = updateTop(screen.height - height);
+        }
+      },
+    });
 
-  return (
-    <View style={styles.fullScreen}>
-      <Animated.View
-        style={[
-          styles.backdrop,
-          { backgroundColor: backdropColor },
-          backdropAnimatedStyle,
-        ]}
-      />
-      <PanGestureHandler onGestureEvent={gestureHandler}>
+    const containerAnimatedStyle = useAnimatedStyle(() => ({
+      top: top.value,
+    }));
+
+    const backdropAnimatedStyle = useAnimatedStyle(() => ({
+      //Less opaque if top value is larger, vice verca
+      opacity: interpolate(
+        top.value,
+        [screen.height - height, screen.height],
+        [1, 0]
+      ),
+      //don't show backdrop component if modal is not present, as it cancels any touch events
+      top: isActive.value ? 0 : screen.height,
+    }));
+
+    return (
+      <View style={styles.fullScreen}>
         <Animated.View
-          style={[styles.container, { height }, style, containerAnimatedStyle]}
-        >
-          {children}
-        </Animated.View>
-      </PanGestureHandler>
-    </View>
-  );
-});
+          style={[
+            styles.backdrop,
+            { backgroundColor: backdropColor },
+            backdropStyle,
+            backdropAnimatedStyle,
+          ]}
+        />
+        <PanGestureHandler onGestureEvent={gestureHandler}>
+          <Animated.View
+            style={[
+              styles.container,
+              { height },
+              style,
+              containerAnimatedStyle,
+            ]}
+          >
+            {children}
+          </Animated.View>
+        </PanGestureHandler>
+      </View>
+    );
+  }
+);
 
 BottomModal.defaultProps = { duration: 300, easing: Easing.quad };
 
@@ -168,7 +185,10 @@ const styles = StyleSheet.create({
   fullScreen: {
     height: screen.height,
     position: 'absolute',
+    top: 0,
+    left: screen.width / 2,
     justifyContent: 'center',
+    alignSelf: 'center',
     alignItems: 'center',
   },
   backdrop: {
