@@ -15,6 +15,7 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import { screen } from '../utils';
@@ -26,7 +27,7 @@ export type BottomModalProps = {
   height: number;
 
   /**
-   * Basically the color of a fullscreen view displayed below modal.
+   * Color of the fullscreen view displayed behind modal.
    * You can also change this by using backdropStyle prop.
    * @example rgba(255,255,255,0.8)
    */
@@ -38,18 +39,24 @@ export type BottomModalProps = {
   style?: ViewStyle;
 
   /**
-   * Easing function which modal will be presented.
-   * Since this also affects the time between user pressing the button and seeing the effect, a faster kind of curve function is recommended.
-   * @default Easing.quad
+   * Type of animation
+   * uses withTiming if set to 'timing'
+   * uses withSpring if set to 'spring'
+   * @default "timing"
+   * @example <<BottomModal animation='timing' timingConfig={{duration: 300, easing: Easing.quad}} height={500} ref={bottomModalRef}>>
    */
-  easing?: Animated.EasingFunction;
+  animation?: 'spring' | 'timing';
 
   /**
-   * Modal animation's duration in milliseconds.
-   * Since this also affects the time between user pressing the button and seeing the effect, a smaler number is recommended.
-   * @default 300
+   * The configuration to use if animation prop is set to 'spring'
    */
-  duration?: number;
+  springConfig?: Animated.WithSpringConfig;
+
+  /**
+   * The configuration to use if animation prop is set to 'timing'
+   * @default {duration: 300, easing: Easing.quad}
+   */
+  timingConfig?: Animated.WithTimingConfig;
 
   /**
    * Style of backdrop component
@@ -79,7 +86,16 @@ const BottomModal = React.forwardRef<
   PropsWithChildren<BottomModalProps>
 >(
   (
-    { height, backdropColor, style, easing, children, duration, backdropStyle },
+    {
+      height,
+      backdropColor,
+      style,
+      children,
+      backdropStyle,
+      animation,
+      springConfig,
+      timingConfig,
+    },
     ref
   ) => {
     const top = useSharedValue(screen.height);
@@ -88,12 +104,13 @@ const BottomModal = React.forwardRef<
     const updateTop = useCallback(
       (value: number) => {
         'worklet';
-        return withTiming(value, {
-          easing,
-          duration,
-        });
+        if (animation === 'spring') {
+          return withSpring(value, springConfig);
+        } else {
+          return withTiming(value, timingConfig);
+        }
       },
-      [easing, duration]
+      [timingConfig, animation, springConfig]
     );
 
     const isActive = useDerivedValue<boolean>(() => {
@@ -179,7 +196,10 @@ const BottomModal = React.forwardRef<
   }
 );
 
-BottomModal.defaultProps = { duration: 300, easing: Easing.quad };
+BottomModal.defaultProps = {
+  timingConfig: { duration: 300, easing: Easing.quad },
+  animation: 'timing',
+};
 
 const styles = StyleSheet.create({
   fullScreen: {
