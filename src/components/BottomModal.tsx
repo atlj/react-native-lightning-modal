@@ -7,6 +7,7 @@ import { StyleSheet, View, ViewStyle } from 'react-native';
 import {
   PanGestureHandler,
   PanGestureHandlerGestureEvent,
+  TouchableWithoutFeedback,
 } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
@@ -18,6 +19,10 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+const ReanimatedBackdrop = Animated.createAnimatedComponent(
+  TouchableWithoutFeedback
+);
+
 import { screen } from '../utils';
 
 export type BottomModalProps = {
@@ -62,6 +67,10 @@ export type BottomModalProps = {
    * Style of backdrop component
    */
   backdropStyle?: ViewStyle;
+  /**
+   * Action when pressing backdrop component
+   */
+  onPressBackdrop?: () => {};
 };
 
 export type BottomModalRef = {
@@ -92,6 +101,7 @@ const BottomModal = React.forwardRef<
       style,
       children,
       backdropStyle,
+      onPressBackdrop,
       animation,
       springConfig,
       timingConfig,
@@ -171,7 +181,8 @@ const BottomModal = React.forwardRef<
 
     return (
       <View style={styles.fullScreen}>
-        <Animated.View
+        <ReanimatedBackdrop
+          onPress={onPressBackdrop}
           style={[
             styles.backdrop,
             { backgroundColor: backdropColor },
