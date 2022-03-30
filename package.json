@@ -1,6 +1,6 @@
 {
-  "name": "react-native-lightning-modal",
-  "version": "2.0.0",
+  "name": "@derewith/react-native-lightning-modal",
+  "version": "2.0.1",
   "description": "a fast modal made with react native reanimated 2!",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -53,13 +53,16 @@
     "react native reanimated bottom modal",
     "react native gesture handler modal"
   ],
-  "repository": "https://github.com/atlj/react-native-lightning-modal",
+  "repository": "https://github.com/Derewith/react-native-lightning-modal",
   "author": "atlj <md.burak.guner@gmail.com> (https://github.com/atlj)",
+  "contributors": [
+    "jonathan canevese <derewith@live.com> (https://github.com/Derewith)"
+  ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/atlj/react-native-lightning-modal/issues"
+    "url": "https://github.com/Derewith/react-native-lightning-modal/issues"
   },
-  "homepage": "https://github.com/atlj/react-native-lightning-modal#readme",
+  "homepage": "https://github.com/Derewith/react-native-lightning-modal#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
