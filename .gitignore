@@ -61,3 +61,6 @@ lib/
 
 #github token
 .env
+
+# vscode plugins
+.dccache
