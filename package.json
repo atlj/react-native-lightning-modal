@@ -1,5 +1,5 @@
 {
-  "name": "@derewith/react-native-lightning-modal",
+  "name": "@develondigital/react-native-lightning-modal",
   "version": "2.0.1",
   "description": "a fast modal made with react native reanimated 2!",
   "main": "lib/commonjs/index",
